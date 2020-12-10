@@ -1,0 +1,11 @@
+{
+  "branch": "master",
+  "dirs":{
+    "./":{
+      "before_push":[
+      ],
+      "after_push":[
+      ]
+    }
+  }
+}
