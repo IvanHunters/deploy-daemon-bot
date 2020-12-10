@@ -27,6 +27,9 @@ class Init
     }
 
     private function handleCommand(array $argv){
+        if (!isset($argv[1])) {
+            die("Command not found\n");
+        }
         switch (mb_strtolower($argv[1])) {
             case 'init':
                 if(file_exists("deploy-config.json")){
@@ -46,8 +49,16 @@ class Init
                 break;
 
             case 'start':
+
+                if(file_exists("deploy-config.json")){
+                    $configBody = file_get_contents("deploy-config.json");
+                    $config = json_decode($configBody, true);
+                } else {
+                    throw new RuntimeException('Config file not found');
+                }
+
                 $fetch = "git fetch 2>&1";
-                $diff = "git diff origin/master..master --name-only 2>&1";
+                $diff = "git diff origin/".$config['branch']."..".$config['branch']." --name-only 2>&1";
 
                 $output = [];
                 $filesMap = [];
@@ -65,6 +76,10 @@ class Init
                         $output = [];
                         exec($diff, $output);
                         $files = $output;
+                        if (count($output) == 0) {
+                            sleep(10);
+                            continue;
+                        }
                         foreach ($files as $file) {
                             $explodeFilePath = explode("/", $file);
                             $countExplode = count($explodeFilePath);
