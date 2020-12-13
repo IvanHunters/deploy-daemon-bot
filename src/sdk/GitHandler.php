@@ -36,7 +36,7 @@ class GitHandler
         }
 
         $filesMap= $this->getDifFiles($files);
-        return $this->handlePullData($filesMap, $beforeHandler, $afterHandler);
+        return $this->handlePullData($filesMap, $beforeHandler, $afterHandler, $config);
     }
 
     private function getDifFiles(array $files): array
@@ -59,16 +59,16 @@ class GitHandler
         return $filesMap;
     }
 
-    private function handlePullData($filesMap, $beforeHandler, $afterHandler) {
-        if (count($filesMap) > 1 || count($filesMap["./"]) > 1) {
-            $resultBefore = $beforeHandler($filesMap);
+    private function handlePullData($filesMap, $beforeHandler, $afterHandler, array $config) {
+        if (count($filesMap) > 0) {
+            $resultBefore = $beforeHandler($filesMap, 'before_pull', $config);
             if ($resultBefore) {
                 $pullResult = $this->execPull();
                 if ($pullResult[0] === "Already up to date!" || $pullResult[0] === "Already up to date.") {
                     return false;
                 }
             }
-            $resultAfter = $afterHandler($filesMap);
+            $resultAfter = $afterHandler($filesMap, 'after_pull', $config);
         }
         return true;
     }

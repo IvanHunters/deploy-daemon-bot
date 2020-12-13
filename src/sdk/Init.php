@@ -13,8 +13,12 @@ class Init
      * @var string
      */
     private string $gitBranch;
+    private $beforeHandler;
+    private $afterHandler;
 
-    public function __construct(array $argv, bool $debug = false){
+    public function __construct(array $argv, $beforeHandler, $afterHandler, bool $debug = false){
+        $this->beforeHandler = $beforeHandler;
+        $this->afterHandler = $afterHandler;
         $this->handleCommand($argv, $debug);
     }
 
@@ -81,41 +85,8 @@ class Init
 
             exec($fetch, $output);
 
-            $beforeHandler = function ($filesMap) use ($config) {
-                $dirs = $config['dirs'];
-                foreach ($filesMap as $path=>$file) {
-                    if (isset($dirs[$path])) {
-                        $dirInfo = $dirs[$path];
-                        if (isset($dirInfo['before_pull'])) {
-                            $beforePullExecution = $dirInfo['before_pull'];
-                            if (count($beforePullExecution) > 0) {
-                                $resultExecution = [];
-                                exec($beforePullExecution, $resultExecution);
-                                $this->logger($resultExecution);
-                            }
-                        }
-                    }
-                }
 
-                return true;
-            };
-            $afterHandler = function ($filesMap) use ($config) {
-                $dirs = $config['dirs'];
-                foreach ($filesMap as $path=>$file) {
-                    if (isset($dirs[$path])) {
-                        $dirInfo = $dirs[$path];
-                        if (isset($dirInfo['before_pull'])) {
-                            $beforePullExecution = $dirInfo['before_pull'];
-                            if (count($beforePullExecution) > 0) {
-                                $resultExecution = [];
-                                exec($beforePullExecution, $resultExecution);
-                                $this->logger($resultExecution);
-                            }
-                        }
-                    }
-                }
-            };
-            if ($gitHandler->getDiff($config, $beforeHandler, $afterHandler)) {
+            if ($gitHandler->getDiff($config, $this->beforeHandler, $this->afterHandler)) {
                 echo sprintf("\n[%s] New pull was been successful handle", date('H:i d.m.Y'));
             }
 
