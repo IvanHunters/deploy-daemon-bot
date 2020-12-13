@@ -34,8 +34,8 @@ $deploy = new Init($argv, $beforeHandler, $afterHandler, false);
 
 # CLI-Commands:
 ```
-php script init -- init config file
-php script start -- start handle pull-requests
+php script init # make config file
+php script start # start handle pull-requests
 ```
 
 
