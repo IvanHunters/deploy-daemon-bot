@@ -1,5 +1,10 @@
 # deploy_daemon_bot
 
+# Install with composer
+```
+composer require lichi/deploy_daemon_bot
+```
+
 # require class
 ```
 require "vendor/autoload.php";
