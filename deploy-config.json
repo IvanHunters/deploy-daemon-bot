@@ -2,9 +2,9 @@
   "branch": "main",
   "dirs":{
     "./":{
-      "before_push":[
+      "before_pull":[
       ],
-      "after_push":[
+      "after_pull":[
       ]
     }
   }
