@@ -4,14 +4,23 @@
 namespace Daemon\Sdk;
 
 
+use Daemon\Sdk\GitHandler;
 use \RuntimeException;
 
 class Init
 {
 
+    /**
+     * @var \Daemon\Sdk\GitHandler
+     */
+    private \Daemon\Sdk\GitHandler $gitHandler;
+    /**
+     * @var string
+     */
+    private string $gitBranch;
+
     public function __construct(array $argv){
         $this->handleCommand($argv);
-        $this->getConfig();
     }
 
     private function getConfig(){
@@ -20,16 +29,24 @@ class Init
         }catch (\Throwable $e){
             throw new RuntimeException('Config file not found');
         }
+        /** @var null|array<string> $config */
         $config = json_decode($configBody, true);
         if (is_null($config)) {
             throw new RuntimeException('Config file not found');
         }
+        if (!isset($config['branch']) || empty($config['branch'])) {
+            throw new RuntimeException('Branch is empty or not found');
+        }
+        $this->gitBranch = $config['branch'];
+        $config1 = $config;
+        return $config;
     }
 
     private function handleCommand(array $argv){
         if (!isset($argv[1])) {
             die("Command not found\n");
         }
+        $this->getConfig();
         switch (mb_strtolower($argv[1])) {
             case 'init':
                 if(file_exists("deploy-config.json")){
@@ -50,27 +67,18 @@ class Init
 
             case 'start':
 
-                if(file_exists("deploy-config.json")){
-                    $configBody = file_get_contents("deploy-config.json");
-                    $config = json_decode($configBody, true);
-                } else {
-                    throw new RuntimeException('Config file not found');
-                }
 
                 $fetch = "git fetch 2>&1";
                 $diff = "git diff origin/".$config['branch']."..".$config['branch']." --name-only 2>&1";
 
                 $output = [];
                 $filesMap = [];
+                $gitHandler = new GitHandler($this->gitBranch);
                 echo sprintf("\n[%s] start monitoring", date('H:i d.m.Y'));
 
                 while(true){
-                    $configBody = file_get_contents("deploy-config.json");
-                    $config = json_decode($configBody, true);
-                    if(is_null($config)){
-                        sleep(10);
-                        continue;
-                    }
+                    $config = $this->getConfig();
+
                     exec($fetch, $output);
                     if (count($output) > 0) {
                         $output = [];
